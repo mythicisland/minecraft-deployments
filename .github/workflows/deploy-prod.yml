@@ -1,0 +1,60 @@
+name: deploy to prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      blueprint:
+        description: The blueprint that will be deployed to prod
+        required: true
+        type: choice
+        options:
+          - paper/every
+          - paper/lobby
+          - velocity/proxy
+      commit:
+        description: The commit that will be deployed to prod
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.commit }}
+
+      - name: Resolve target
+        id: target
+        run: |
+          case "${{ inputs.blueprint }}" in
+            paper/every)     dest="/home/cloud/templates/_every/every_paper" ;;
+            paper/lobby)     dest="/home/cloud/templates/lobby" ;;
+            velocity/proxy)  dest="/home/cloud/templates/proxy" ;;
+            *) echo "Unknown blueprint"; exit 1 ;;
+          esac
+          echo "src=blueprints/${{ inputs.blueprint }}" >> "$GITHUB_OUTPUT"
+          echo "dest=$dest" >> "$GITHUB_OUTPUT"
+
+      - name: Setup SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${SSH_PORT:-22}" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SRC: ${{ steps.target.outputs.src }}
+          DEST: ${{ steps.target.outputs.dest }}
+        run: |
+          PORT="${SSH_PORT:-22}"
+          ssh -p "$PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$DEST'"
+          rsync -az --delete -e "ssh -p $PORT" "$SRC/" "$SSH_USER@$SSH_HOST:$DEST/"
