@@ -1,0 +1,11 @@
+# Config version. Do not change this
+config-version = "2.8"
+
+player-info-forwarding-mode = "modern"
+
+[advanced]
+haproxy-protocol = false
+announce-proxy-commands = false
+log-command-executions = false
+log-player-connections = false
+accepts-transfers = true

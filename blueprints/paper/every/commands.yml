@@ -1,0 +1,11 @@
+command-block-overrides: []
+ignore-vanilla-permissions: false
+aliases:
+  tps:
+    - spark tps
+  health:
+    - spark health
+  profiler:
+    - spark profiler
+  gc:
+    - spark gc
