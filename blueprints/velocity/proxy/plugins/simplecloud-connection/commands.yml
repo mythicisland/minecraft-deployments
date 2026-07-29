@@ -1,0 +1,37 @@
+version: '2'
+
+commands:
+  - name: lobby
+    aliases:
+      - hub
+      - l
+    permission: ''
+    messages:
+        already-connected: '<color:#dc2626>You are already connected to this lobby!'
+        no-target-connection-found: '<color:#dc2626>Couldn''t find a target server!'
+    target-connections:
+      - name: lobby
+        priority: 0
+        from: []
+  - name: development
+    aliases:
+      - dev
+    permission: ''
+    messages:
+        already-connected: '<color:#dc2626>You are already connected to this development server!'
+        no-target-connection-found: '<color:#dc2626>Couldn''t find a target server!'
+    target-connections:
+      - name: dev
+        priority: 0
+        from: []
+  - name: build
+    aliases:
+      - b
+    permission: ''
+    messages:
+        already-connected: '<color:#dc2626>You are already connected to this build server!'
+        no-target-connection-found: '<color:#dc2626>Couldn''t find a target server!'
+    target-connections:
+      - name: build
+        priority: 0
+        from: []
