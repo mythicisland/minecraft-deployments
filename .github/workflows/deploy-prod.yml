@@ -8,6 +8,7 @@ on:
         required: true
         type: choice
         options:
+          - all
           - paper/every
           - paper/lobby
           - velocity/proxy
@@ -28,14 +29,32 @@ jobs:
       - name: Resolve target
         id: target
         run: |
+          targets=()
           case "${{ inputs.blueprint }}" in
-            paper/every)     dest="/home/cloud/templates/_every/every_paper" ;;
-            paper/lobby)     dest="/home/cloud/templates/lobby" ;;
-            velocity/proxy)  dest="/home/cloud/templates/proxy" ;;
+            all)
+              targets+=("blueprints/paper/every:/home/cloud/templates/_every/every_paper")
+              targets+=("blueprints/paper/lobby:/home/cloud/templates/lobby")
+              targets+=("blueprints/velocity/proxy:/home/cloud/templates/proxy")
+              ;;
+            paper/every)
+              targets+=("blueprints/paper/every:/home/cloud/templates/_every/every_paper")
+              ;;
+            paper/lobby)
+              targets+=("blueprints/paper/lobby:/home/cloud/templates/lobby")
+              ;;
+            velocity/proxy)
+              targets+=("blueprints/velocity/proxy:/home/cloud/templates/proxy")
+              ;;
             *) echo "Unknown blueprint"; exit 1 ;;
           esac
-          echo "src=blueprints/${{ inputs.blueprint }}" >> "$GITHUB_OUTPUT"
-          echo "dest=$dest" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "targets<<EOF"
+            for t in "${targets[@]}"; do
+              echo "$t"
+            done
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Setup SSH
         env:
@@ -52,9 +71,12 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
-          SRC: ${{ steps.target.outputs.src }}
-          DEST: ${{ steps.target.outputs.dest }}
+          TARGETS: ${{ steps.target.outputs.targets }}
         run: |
           PORT="${SSH_PORT:-22}"
-          ssh -p "$PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$DEST'"
-          rsync -az --delete -e "ssh -p $PORT" "$SRC/" "$SSH_USER@$SSH_HOST:$DEST/"
+          echo "$TARGETS" | while IFS=":" read -r src dest; do
+            [ -z "$src" ] && continue
+            echo "Deploying $src -> $dest..."
+            ssh -p "$PORT" "$SSH_USER@$SSH_HOST" "mkdir -p '$dest'"
+            rsync -az --delete -e "ssh -p $PORT" "$src/" "$SSH_USER@$SSH_HOST:$dest/"
+          done
