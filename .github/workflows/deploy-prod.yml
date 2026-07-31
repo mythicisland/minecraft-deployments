@@ -32,18 +32,18 @@ jobs:
           targets=()
           case "${{ inputs.blueprint }}" in
             all)
-              targets+=("blueprints/paper/every:/home/cloud/templates/_every/every_paper")
-              targets+=("blueprints/paper/lobby:/home/cloud/templates/lobby")
-              targets+=("blueprints/velocity/proxy:/home/cloud/templates/proxy")
+              targets+=("blueprints/paper/every:/home/simplecloud/templates/_every/every_paper")
+              targets+=("blueprints/paper/lobby:/home/simplecloud/templates/lobby")
+              targets+=("blueprints/velocity/proxy:/home/simplecloud/templates/proxy")
               ;;
             paper/every)
-              targets+=("blueprints/paper/every:/home/cloud/templates/_every/every_paper")
+              targets+=("blueprints/paper/every:/home/simplecloud/templates/_every/every_paper")
               ;;
             paper/lobby)
-              targets+=("blueprints/paper/lobby:/home/cloud/templates/lobby")
+              targets+=("blueprints/paper/lobby:/home/simplecloud/templates/lobby")
               ;;
             velocity/proxy)
-              targets+=("blueprints/velocity/proxy:/home/cloud/templates/proxy")
+              targets+=("blueprints/velocity/proxy:/home/simplecloud/templates/proxy")
               ;;
             *) echo "Unknown blueprint"; exit 1 ;;
           esac
