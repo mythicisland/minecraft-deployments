@@ -1,0 +1,28 @@
+config-version: '2'
+
+motd:
+  enabled: true
+  update-type: RANDOM
+  layouts:
+    - name: 'public'
+      line1: '<color:#0ea5e9>A simplecloud.app network'
+      line2: ' '
+
+server-icon: 
+  enabled: true
+  file: 'simplecloud.png'
+
+player-list:
+  enabled: true
+  player-list:
+  - ''
+  - 'simplecloud.app'
+  - ''
+
+version:
+  name:
+    enabled: false
+    text: 'Example'
+  slots:
+    enabled: true
+    type: REAL

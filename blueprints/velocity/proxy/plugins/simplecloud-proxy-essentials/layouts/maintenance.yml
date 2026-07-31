@@ -1,0 +1,28 @@
+config-version: '2'
+
+motd:
+  enabled: true
+  update-type: RANDOM
+  layouts:
+    - name: 'maintenance'
+      line1: '<color:#ACACAC>A simplecloud.app network in maintenance'
+      line2: ' '
+
+server-icon: 
+  enabled: true
+  file: 'simplecloud-gray.png'
+
+player-list:
+  enabled: true
+  player-list:
+  - ''
+  - 'simplecloud.app'
+  - ''
+
+version:
+  name:
+    enabled: true
+    text: '<#DC2626>Maintenance'
+  slots:
+    enabled: true
+    type: REAL

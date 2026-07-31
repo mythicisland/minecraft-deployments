@@ -1,0 +1,19 @@
+version: 1
+
+general:
+  source: LUCKPERMS
+  default-group: default
+  sync:
+    tablist:
+      enabled: true
+      all-servers: false
+      server-groups: ["lobby"]
+      persistent-servers: []
+    chat:
+      enabled: true
+      all-servers: false
+      server-groups: ["lobby"]
+      persistent-servers: []
+
+# We use luckperms as source for the prefixes, so we don't need to define any groups here.
+groups: []
