@@ -1,0 +1,34 @@
+# The config format version. Do not change this value.
+version: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# General
+# Controls how player groups are resolved.
+# ─────────────────────────────────────────────────────────────────────────────
+general:
+  source: LUCKPERMS
+  default-group: default
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Features
+# Each part of the plugin can be enabled independently.
+# ─────────────────────────────────────────────────────────────────────────────
+features:
+  chat: true
+  tablist: true
+  display-name: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Sync
+# Shares chat messages and tab list entries across the SimpleCloud network.
+# Disabling sync does not disable local formatting.
+# ─────────────────────────────────────────────────────────────────────────────
+sync:
+  enabled: true
+  channels:
+    chat: true
+    tablist: true
+  sources:
+  - lobby
+
+groups: []
