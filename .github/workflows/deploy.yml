@@ -1,0 +1,109 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# never two deploys at once, and never cancel one halfway
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  SC_HOME: /home/simplecloud/serverhost
+
+jobs:
+  deploy:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read versions
+        id: versions
+        run: |
+          echo "lobby=$(yq '.lobby.version' versions.yml)" >> "$GITHUB_OUTPUT"
+          echo "lobby_blueprint=$(yq '.lobby.blueprint' versions.yml)" >> "$GITHUB_OUTPUT"
+          echo "proxy=$(yq '.proxy.version' versions.yml)" >> "$GITHUB_OUTPUT"
+          echo "proxy_template=$(yq '.proxy.template' versions.yml)" >> "$GITHUB_OUTPUT"
+
+      # the monorepo is private, the deploy app may read its releases
+      - name: Create app token
+        id: app
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.DEPLOY_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DEPLOY_APP_KEY }}
+          owner: mythicisland
+          repositories: monorepo
+
+      - name: Download releases
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          LOBBY: ${{ steps.versions.outputs.lobby }}
+          PROXY: ${{ steps.versions.outputs.proxy }}
+          PROXY_TEMPLATE: ${{ steps.versions.outputs.proxy_template }}
+        run: |
+          gh release download "lobby/v$LOBBY" -R mythicisland/monorepo -D dist/lobby
+          gh release download "proxy/v$PROXY" -R mythicisland/monorepo -D dist/proxy
+          (cd dist/lobby && sha256sum -c SHA256SUMS)
+          (cd dist/proxy && sha256sum -c SHA256SUMS)
+          mkdir -p "templates/$PROXY_TEMPLATE/plugins"
+          cp dist/proxy/proxy.jar "templates/$PROXY_TEMPLATE/plugins/mythicisland-proxy.jar"
+
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${SSH_PORT:-22}" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          echo "REMOTE=$SSH_USER@$SSH_HOST" >> "$GITHUB_ENV"
+          echo "RSYNC_RSH=ssh -p ${SSH_PORT:-22}" >> "$GITHUB_ENV"
+          echo "SSH_PORT=${SSH_PORT:-22}" >> "$GITHUB_ENV"
+
+      # each template is mirrored on its own; jars that aren't in git (plugins SimpleCloud installs) are kept
+      - name: Sync templates
+        run: |
+          for dir in templates/*/; do
+            name="$(basename "$dir")"
+            ssh -p "$SSH_PORT" "$REMOTE" "mkdir -p '$SC_HOME/templates/$name'"
+            rsync -az --delete --filter='P *.jar' "$dir" "$REMOTE:$SC_HOME/templates/$name/"
+          done
+
+      - name: Sync configurators
+        run: rsync -az configurators/ "$REMOTE:$SC_HOME/options/configurators/"
+
+      # a versioned path: the serverhost uses an absolute server_url as it is, and old versions stay for a rollback
+      - name: Upload lobby binary
+        id: lobby
+        env:
+          LOBBY: ${{ steps.versions.outputs.lobby }}
+        run: |
+          dest="$SC_HOME/binaries/lobby/$LOBBY"
+          chmod +x dist/lobby/lobby
+          ssh -p "$SSH_PORT" "$REMOTE" "mkdir -p '$dest'"
+          rsync -az --ignore-existing dist/lobby/lobby "$REMOTE:$dest/lobby"
+          echo "path=$dest/lobby" >> "$GITHUB_OUTPUT"
+
+      - name: Point the lobby blueprint at the binary
+        uses: mythicisland/actions/simplecloud/update-blueprint@main
+        with:
+          network-id: ${{ secrets.SIMPLECLOUD_NETWORK_ID }}
+          network-credential: ${{ secrets.SIMPLECLOUD_NETWORK_CREDENTIAL }}
+          blueprint-name: ${{ steps.versions.outputs.lobby_blueprint }}
+          server-url: ${{ steps.lobby.outputs.path }}
+          configurator: minestom_velocity
+          runtime-config-type: binary
+
+      # Running servers keep the old version until they restart. To roll them over right away:
+      # - uses: mythicisland/actions/simplecloud/rolling-restart@main
+      #   with:
+      #     network-id: ${{ secrets.SIMPLECLOUD_NETWORK_ID }}
+      #     network-credential: ${{ secrets.SIMPLECLOUD_NETWORK_CREDENTIAL }}
+      #     server-group-name: lobby

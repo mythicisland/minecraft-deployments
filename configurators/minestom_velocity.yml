@@ -1,0 +1,10 @@
+# Minestom has no config files of its own: the lobby reads this server.properties on start
+# (environment variables win over it). The file is created if it doesn't exist.
+paths:
+  - path: "server.properties"
+    type: "PROPERTIES"
+    data:
+      server-ip: "0.0.0.0"
+      server-port: %port%
+      max-players: %max-players%
+      velocity-secret: "%forwarding-secret%"
