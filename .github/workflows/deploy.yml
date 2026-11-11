@@ -103,7 +103,8 @@ jobs:
             chmod +x "dist/$server/$server"
             ssh -p "$SSH_PORT" "$REMOTE" "mkdir -p '$(dirname "$versioned")'"
             rsync -az --ignore-existing "dist/$server/$server" "$REMOTE:$versioned"
-            ssh -p "$SSH_PORT" "$REMOTE" "ln -f '$versioned' '$current.new' && mv -f '$current.new' '$current'"
+            # a redeploy of the same version finds the link in place, mv refuses to move a file onto itself
+            ssh -p "$SSH_PORT" "$REMOTE" "[ '$versioned' -ef '$current' ] || { ln -f '$versioned' '$current.new' && mv -f '$current.new' '$current'; }"
           }
           upload lobby "$LOBBY"
           if [ -d dist/battle ]; then
