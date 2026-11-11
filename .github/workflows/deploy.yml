@@ -85,17 +85,21 @@ jobs:
       - name: Sync configurators
         run: rsync -az configurators/ "$REMOTE:$SC_HOME/options/configurators/"
 
-      # a versioned path: the serverhost uses an absolute server_url as it is, and old versions stay for a rollback
+      # Every version keeps its own folder for a rollback, and binaries/lobby/lobby is a hard link to the deployed one.
+      # The blueprint always points at that fixed path, so it never has to change (the controller ignores a new
+      # server_url anyway). mv replaces the link atomically; running servers keep the copy they started with.
       - name: Upload lobby binary
         id: lobby
         env:
           LOBBY: ${{ steps.versions.outputs.lobby }}
         run: |
-          dest="$SC_HOME/binaries/lobby/$LOBBY"
+          versioned="$SC_HOME/binaries/lobby/$LOBBY/lobby"
+          current="$SC_HOME/binaries/lobby/lobby"
           chmod +x dist/lobby/lobby
-          ssh -p "$SSH_PORT" "$REMOTE" "mkdir -p '$dest'"
-          rsync -az --ignore-existing dist/lobby/lobby "$REMOTE:$dest/lobby"
-          echo "path=$dest/lobby" >> "$GITHUB_OUTPUT"
+          ssh -p "$SSH_PORT" "$REMOTE" "mkdir -p '$(dirname "$versioned")'"
+          rsync -az --ignore-existing dist/lobby/lobby "$REMOTE:$versioned"
+          ssh -p "$SSH_PORT" "$REMOTE" "ln -f '$versioned' '$current.new' && mv -f '$current.new' '$current'"
+          echo "path=$current" >> "$GITHUB_OUTPUT"
 
       - name: Point the lobby blueprint at the binary
         uses: mythicisland/actions/simplecloud/update-blueprint@main
