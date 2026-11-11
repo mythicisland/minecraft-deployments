@@ -1,8 +1,11 @@
 # Releases of mythicisland/monorepo that run in production.
-# The monorepo release workflow opens a PR that bumps a version; merging it deploys.
+# Monorepo releases add their version to one deployment PR; merging it deploys.
 lobby:
   version: 0.0.4
   blueprint: lobby # SimpleCloud blueprint name
 proxy:
   version: "" # empty until the proxy plugin has code
   template: proxy # the jar goes to templates/<template>/plugins/
+battle:
+  version: "" # empty until the first battle release
+  blueprint: battle

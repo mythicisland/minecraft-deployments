@@ -5,7 +5,6 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# never two deploys at once, and never cancel one halfway
 concurrency:
   group: production
   cancel-in-progress: false
@@ -25,10 +24,11 @@ jobs:
         run: |
           echo "lobby=$(yq '.lobby.version' versions.yml)" >> "$GITHUB_OUTPUT"
           echo "lobby_blueprint=$(yq '.lobby.blueprint' versions.yml)" >> "$GITHUB_OUTPUT"
+          echo "battle=$(yq '.battle.version' versions.yml)" >> "$GITHUB_OUTPUT"
+          echo "battle_blueprint=$(yq '.battle.blueprint' versions.yml)" >> "$GITHUB_OUTPUT"
           echo "proxy=$(yq '.proxy.version' versions.yml)" >> "$GITHUB_OUTPUT"
           echo "proxy_template=$(yq '.proxy.template' versions.yml)" >> "$GITHUB_OUTPUT"
 
-      # the monorepo is private, the deploy app may read its releases
       - name: Create app token
         id: app
         uses: actions/create-github-app-token@v3
@@ -42,11 +42,18 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           LOBBY: ${{ steps.versions.outputs.lobby }}
+          BATTLE: ${{ steps.versions.outputs.battle }}
           PROXY: ${{ steps.versions.outputs.proxy }}
           PROXY_TEMPLATE: ${{ steps.versions.outputs.proxy_template }}
         run: |
           gh release download "lobby/v$LOBBY" -R mythicisland/monorepo -D dist/lobby
           (cd dist/lobby && sha256sum -c SHA256SUMS)
+
+          # no battle version yet: nothing to deploy for it
+          if [ -n "$BATTLE" ] && [ "$BATTLE" != "null" ]; then
+            gh release download "battle/v$BATTLE" -R mythicisland/monorepo -D dist/battle
+            (cd dist/battle && sha256sum -c SHA256SUMS)
+          fi
 
           # no proxy version yet: the proxy runs without our plugin
           if [ -z "$PROXY" ] || [ "$PROXY" = "null" ]; then
@@ -73,7 +80,6 @@ jobs:
           echo "RSYNC_RSH=ssh -p ${SSH_PORT:-22}" >> "$GITHUB_ENV"
           echo "SSH_PORT=${SSH_PORT:-22}" >> "$GITHUB_ENV"
 
-      # each template is mirrored on its own; jars that aren't in git (plugins SimpleCloud installs) are kept
       - name: Sync templates
         run: |
           for dir in templates/*/; do
@@ -85,21 +91,24 @@ jobs:
       - name: Sync configurators
         run: rsync -az configurators/ "$REMOTE:$SC_HOME/options/configurators/"
 
-      # Every version keeps its own folder for a rollback, and binaries/lobby/lobby is a hard link to the deployed one.
-      # The blueprint always points at that fixed path, so it never has to change (the controller ignores a new
-      # server_url anyway). mv replaces the link atomically; running servers keep the copy they started with.
-      - name: Upload lobby binary
-        id: lobby
+      - name: Upload server binaries
         env:
           LOBBY: ${{ steps.versions.outputs.lobby }}
+          BATTLE: ${{ steps.versions.outputs.battle }}
         run: |
-          versioned="$SC_HOME/binaries/lobby/$LOBBY/lobby"
-          current="$SC_HOME/binaries/lobby/lobby"
-          chmod +x dist/lobby/lobby
-          ssh -p "$SSH_PORT" "$REMOTE" "mkdir -p '$(dirname "$versioned")'"
-          rsync -az --ignore-existing dist/lobby/lobby "$REMOTE:$versioned"
-          ssh -p "$SSH_PORT" "$REMOTE" "ln -f '$versioned' '$current.new' && mv -f '$current.new' '$current'"
-          echo "path=$current" >> "$GITHUB_OUTPUT"
+          upload() {
+            local server="$1" version="$2"
+            local versioned="$SC_HOME/binaries/$server/$version/$server"
+            local current="$SC_HOME/binaries/$server/$server"
+            chmod +x "dist/$server/$server"
+            ssh -p "$SSH_PORT" "$REMOTE" "mkdir -p '$(dirname "$versioned")'"
+            rsync -az --ignore-existing "dist/$server/$server" "$REMOTE:$versioned"
+            ssh -p "$SSH_PORT" "$REMOTE" "ln -f '$versioned' '$current.new' && mv -f '$current.new' '$current'"
+          }
+          upload lobby "$LOBBY"
+          if [ -d dist/battle ]; then
+            upload battle "$BATTLE"
+          fi
 
       - name: Point the lobby blueprint at the binary
         uses: mythicisland/actions/simplecloud/update-blueprint@main
@@ -107,13 +116,23 @@ jobs:
           network-id: ${{ secrets.SIMPLECLOUD_NETWORK_ID }}
           network-credential: ${{ secrets.SIMPLECLOUD_NETWORK_CREDENTIAL }}
           blueprint-name: ${{ steps.versions.outputs.lobby_blueprint }}
-          server-url: ${{ steps.lobby.outputs.path }}
+          server-url: ${{ env.SC_HOME }}/binaries/lobby/lobby
           configurator: minestom_velocity
           server-software: minestom
-          # replaces the whole runtime config, so the java options and args of a java blueprint go away
           runtime-config-type: binary
 
-      # Running servers keep the old version until they restart. To roll them over right away:
+      - name: Point the battle blueprint at the binary
+        if: steps.versions.outputs.battle != '' && steps.versions.outputs.battle != 'null'
+        uses: mythicisland/actions/simplecloud/update-blueprint@main
+        with:
+          network-id: ${{ secrets.SIMPLECLOUD_NETWORK_ID }}
+          network-credential: ${{ secrets.SIMPLECLOUD_NETWORK_CREDENTIAL }}
+          blueprint-name: ${{ steps.versions.outputs.battle_blueprint }}
+          server-url: ${{ env.SC_HOME }}/binaries/battle/battle
+          configurator: minestom_velocity
+          server-software: minestom
+          runtime-config-type: binary
+
       # - uses: mythicisland/actions/simplecloud/rolling-restart@main
       #   with:
       #     network-id: ${{ secrets.SIMPLECLOUD_NETWORK_ID }}
