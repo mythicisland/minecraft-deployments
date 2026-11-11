@@ -1,37 +1,27 @@
-version: '2'
+# The config format version. Do not change this value.
+version: 2
 
 commands:
   - name: lobby
     aliases:
       - hub
-      - l
     permission: ''
-    messages:
-        already-connected: '<color:#dc2626>You are already connected to this lobby!'
-        no-target-connection-found: '<color:#dc2626>Couldn''t find a target server!'
     target-connections:
       - name: lobby
         priority: 0
         from: []
-  - name: development
-    aliases:
-      - dev
-    permission: ''
     messages:
-        already-connected: '<color:#dc2626>You are already connected to this development server!'
-        no-target-connection-found: '<color:#dc2626>Couldn''t find a target server!'
+      already-connected: '<prefix> <warning>You are already in the lobby.'
+      no-target-connection-found: '<prefix> <error>There is no lobby available right now.'
+
+  - name: survival
+    aliases:
+      - danny
+    permission: 'mythicisland.connection.survival'
     target-connections:
-      - name: dev
+      - name: survival
         priority: 0
         from: []
-  - name: build
-    aliases:
-      - b
-    permission: ''
     messages:
-        already-connected: '<color:#dc2626>You are already connected to this build server!'
-        no-target-connection-found: '<color:#dc2626>Couldn''t find a target server!'
-    target-connections:
-      - name: build
-        priority: 0
-        from: []
+      already-connected: '<prefix> <warning>You are already in the survival server.'
+      no-target-connection-found: '<prefix> <error>There is no survival server available right now.'

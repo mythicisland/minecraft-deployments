@@ -1,18 +1,18 @@
-version: '2'
+version: 2
 
 registration:
-    enabled: true
-    server-name-pattern: '<group>-<numerical_id>'
-    persistent-server-name-pattern: '<name>'
-    ignore-server-groups-and-persistent-servers: []
-    additional-servers: []
+  enabled: true
+  server-name-pattern: '<group>-<numerical_id>'
+  persistent-server-name-pattern: '<name>'
+  ignore-server-groups-and-persistent-servers: []
+  additional-servers: []
 
 address:
   routes:
-    - subdomain: 'dev.mythicisland.net'
-      target-connection: dev
-    - subdomain: 'build.mythicisland.net'
-      target-connection: build
+    - subdomain: 'play.mythicisland.club'
+      target-connection: lobby
+    - subdomain: 'survival.mythicisland.club'
+      target-connection: survival
 
 connections:
   - name: lobby
@@ -21,24 +21,18 @@ connections:
       value: lobby
       negate: false
     rules: []
-  - name: dev
+  - name: survival
     server-name-matcher:
       operation: STARTS_WITH
-      value: dev
-      negate: false
-    rules: []
-  - name: build
-    server-name-matcher:
-      operation: STARTS_WITH
-      value: build
+      value: survival
       negate: false
     rules: []
 
 network-join-targets:
-    enabled: true
-    target-connections:
-      - name: lobby
-        priority: 0
+  enabled: true
+  target-connections:
+    - name: lobby
+      priority: 0
 
 fallback:
   enabled: true

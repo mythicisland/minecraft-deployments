@@ -1,7 +1,9 @@
 version: '2'
 
-initial-state: public
-initial-layout: public
+initial-state: vip
+initial-layout: vip
+
+show-kick-reason: true
 
 joinstates:
   - name: public
@@ -14,17 +16,23 @@ joinstates:
       join: 'simplecloud.proxy-essentials.join.maintenance'
       full: 'simplecloud.proxy-essentials.join.maintenance'
     forced-motd-layout: maintenance
+  - name: vip
+    permission:
+      join: 'island.connection.vip'
+      full: 'island.connection.vip'
+    forced-motd-layout: vip
 
+external-server-joinstates: {}
+  
 whitelist:
-  enabled: true
-  players:
-    - xxjanis0
-    - SkinnySkellet
-    - xxDannyyy
-    - xxDannyyyy
+  enabled: false
+  players: []
+
+domains: []
 
 player-count:
   enabled: true
+  network: true
   additional-groups: []
   additional-persistent-servers: []
   update-time: 20
@@ -32,6 +40,6 @@ player-count:
 tablist:
   - name: global
     layout:
-      - header: '<br><color:#0ea5e9>SimpleCloud v3<br>'
-        footer: '<br> <color:#ffffff><online_players> players <color:#cbd5e1>are playing on your network <br> <color:#64748b>  sɪᴍᴘʟᴇᴄʟᴏᴜᴅ.ᴀᴘᴘ<br>'
+      - header: '<br><brand><smallcaps><env:SIMPLECLOUD_NETWORK_DISPLAY_NAME:SimpleCloud></smallcaps><br>'
+        footer: '<br>  <brand>⚡</brand> <highlight>simplecloud.app                <success>●</success> <highlight><online_players> <muted>Online  <br>'
     update-time: 20

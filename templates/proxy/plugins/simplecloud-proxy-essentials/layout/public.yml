@@ -4,20 +4,20 @@ motd:
   enabled: true
   update-type: RANDOM
   layouts:
-    - name: 'public'
-      line1: '<color:#0ea5e9>A simplecloud.app network'
-      line2: ' '
+    - name: public
+      line1: '<center><brand>ꜱɪᴍᴘʟᴇᴄʟᴏᴜᴅ</center>'
+      line2: '<center><muted>A network powered by simplecloud.app</center>'
 
-server-icon: 
+server-icon:
   enabled: true
   file: 'simplecloud.png'
 
 player-list:
   enabled: true
   player-list:
-  - ''
-  - 'simplecloud.app'
-  - ''
+    - ''
+    - '<muted>simplecloud.app'
+    - ''
 
 version:
   name:

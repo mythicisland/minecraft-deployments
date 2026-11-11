@@ -1,41 +1,123 @@
 version: '2'
 
+palette:
+  brand: '#3B95FF'
+  interactive: '#62ADFF'
+  highlight: '#CFE4FF'
+  muted: '#A1A7B5'
+  separator: '#5F5F63'
+  info: '#4FA3FF'
+  success: '#6AD13C'
+  warning: '#FF9029'
+  error: '#FF3B30'
+  mint: '#1FD98E'
+  violet: '#9566FF'
+  pink: '#E94BA6'
+  gold: '#F2C230'
+  cyan: '#22C3DB'
+  amber: '#FFA329'
+
 variables:
-    prefix: "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>"
+  prefix: '<brand><b>⚡</b></brand>'
+
+format:
+  date: 'dd.MM.yyyy'
+  time: 'HH:mm:ss'
+  ping-colors:
+    - ping: 0
+      color: '<success>'
+    - ping: 100
+      color: '<warning>'
+    - ping: 200
+      color: '<error>'
 
 kick:
-    no-permission: "<red>The network is currently in maintenance mode. Please try again later."
-    network-full: "<red>The network is currently full. Please try again later."
-    no-join-state: "<red>No join state found for server. Please try again later."
+  no-permission: '<warning>Only players with the VIP rank can join right now.<br><br><muted>Try again later.'
+  network-full: '<error>The network is full.<br><br><muted>Try again in a few minutes.'
+  no-join-state: '<error>This server can''t be joined right now.<br><br><muted>Try again later.'
 
 command:
-    join-state:
-        server:
-            update-success: "<prefix>Join state of server updated successfully."
-            update-failure: "<prefix>Failed to update join state of server."
-            update-no-change: "<prefix>Join state of server did not change."
-        group:
-            update-success: "<prefix>Join state of group updated successfully."
-            update-failure: "<prefix>Failed to update join state of group."
-            update-no-change: "<prefix>Join state of group did not change."
-        help:
-            header: "<prefix>Commands of join state:"
-            entry: "   <color:#a3a3a3><command>"
-        list:
-            groups:
-                header: "<prefix>Groups with every join states:"
-                entry: "   <color:#a3a3a3><group> <color:#ffffff>- <color:#a3a3a3><state>"
-            states:
-                header: "<prefix>List of every join states:"
-                entry: "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><joinPermission>"
-    layout:
-        help:
-            header: "<prefix>Commands of layout:"
-            entry: "   <color:#a3a3a3><command>"
-        info:
-            header: "<prefix>Layout for <color:#a3a3a3><group><color:#ffffff>:"
-            entry: "   <color:#a3a3a3><layout>"
-        set:
-            update-success: "<prefix>Layout for group updated successfully."
-            update-failure: "<prefix>Failed to update layout for group."
-            update-no-change: "<prefix>Layout for group did not change."
+  help:
+    header: '<prefix> <info>Proxy commands  <separator>/scproxy'
+    entry: '   <interactive><subcommand></interactive> <muted><arguments>'
+    hover: '<highlight><description><br><muted>Usage: <highlight><usage><br><br><interactive>Click to type this command'
+    descriptions:
+      'reload': 'Reload the configuration'
+      'joinstate list': 'List the join states of all groups'
+      'joinstate info': 'Show the join state of this server'
+      'joinstate info <group|ps> <target> [id]': 'Show the join state of a target'
+      'joinstate set <group|ps> <target> <joinstate> [id]': 'Change the join state of a target'
+      'layout info [group]': 'Show the layout of a group'
+      'layout set <group> <layout>': 'Change the layout of a group'
+
+  failure: '<prefix> <error>The command failed. Check the console.'
+  invalid-target-type: '<prefix> <error>Use group or ps as the target type.'
+  persistent-server-id: '<prefix> <error>Persistent servers don''t have an id.'
+  target-not-found: '<prefix> <error>Target <target> was not found.'
+
+  reload:
+    start: '<prefix> <info>Reloading the proxy configuration.'
+    success: '<prefix> <success>Reloaded the proxy configuration!'
+    failure: '<prefix> <error>Couldn''t reload the proxy configuration because <reason>.'
+
+  join-state:
+    server:
+      update-success: '<prefix> <success>Updated the join state of the server.'
+      update-failure: '<prefix> <error>Couldn''t update the join state of the server.'
+      update-no-change: '<prefix> <warning>The server already has this join state.'
+
+    group:
+      update-success: '<prefix> <success>Updated the join state of the group.'
+      update-failure: '<prefix> <error>Couldn''t update the join state of the group.'
+      update-no-change: '<prefix> <warning>The group already has this join state.'
+
+    help:
+      header: '<prefix> <info>Join state commands  <separator>/scproxy'
+      entry: '   <interactive><subcommand></interactive> <muted><arguments>'
+      hover: '<highlight><description><br><muted>Usage: <highlight><usage><br><br><interactive>Click to type this command'
+      descriptions:
+        'joinstate list': 'List the join states of all groups'
+        'joinstate info': 'Show the join state of this server'
+        'joinstate info <group|ps> <target> [id]': 'Show the join state of a target'
+        'joinstate set <group|ps> <target> <joinstate> [id]': 'Change the join state of a target'
+
+    list:
+      groups:
+        header: '<prefix> <info>Groups and their join states'
+        entry: '<separator>•</separator> <highlight><group> <separator>(</separator><muted><state></muted><separator>)</separator>'
+
+      states:
+        header: '<prefix> <info>Join states'
+        entry: '<separator>•</separator> <highlight><state> <separator>(</separator><muted><join_permission></muted><separator>)</separator>'
+
+  layout:
+    help:
+      header: '<prefix> <info>Layout commands  <separator>/scproxy'
+      entry: '   <interactive><subcommand></interactive> <muted><arguments>'
+      hover: '<highlight><description><br><muted>Usage: <highlight><usage><br><br><interactive>Click to type this command'
+      descriptions:
+        'layout info [group]': 'Show the layout of a group'
+        'layout set <group> <layout>': 'Change the layout of a group'
+
+    info:
+      header: '<prefix> <info>Layout of group <group>'
+      entry: '<separator>•</separator> <highlight><layout>'
+
+    set:
+      update-success: '<prefix> <success>Updated the layout of the group.'
+      update-failure: '<prefix> <error>Couldn''t update the layout of the group.'
+      update-no-change: '<prefix> <warning>The group already has this layout.'
+
+  exception:
+    syntax: '<prefix> <error>Use <command> instead.'
+    permission: '<prefix> <error>You don''t have permission to use this command.'
+    invalid-sender: '<prefix> <error>You can''t use this command here.'
+    failed: '<prefix> <error>The command failed because <reason>.'
+    argument:
+      invalid: '<prefix> <error>That argument is invalid: <reason>.'
+      invalid-number: '<prefix> <error><value> is not a number.'
+      number-too-small: '<prefix> <error>The number must be at least <min>.'
+      number-too-large: '<prefix> <error>The number must be at most <max>.'
+      invalid-boolean: '<prefix> <error>Use true or false.'
+      invalid-enum: '<prefix> <error><value> is not an option. Use one of <options>.'
+      invalid-uuid: '<prefix> <error><value> is not a valid UUID.'

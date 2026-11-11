@@ -1,0 +1,28 @@
+config-version: '2'
+
+motd:
+  enabled: true
+  update-type: RANDOM
+  layouts:
+    - name: vip
+      line1: '<center><brand>ꜱɪᴍᴘʟᴇᴄʟᴏᴜᴅ</center>'
+      line2: '<center><gold>Open for VIPs only right now</center>'
+
+server-icon:
+  enabled: true
+  file: 'simplecloud.png'
+
+player-list:
+  enabled: true
+  player-list:
+    - ''
+    - '<muted>simplecloud.app'
+    - ''
+
+version:
+  name:
+    enabled: true
+    text: '<gold>VIP only'
+  slots:
+    enabled: true
+    type: REAL
