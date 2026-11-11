@@ -5,7 +5,7 @@ motd:
   update-type: RANDOM
   layouts:
     - name: vip
-      line1: '<center><brand>ꜱɪᴍᴘʟᴇᴄʟᴏᴜᴅ</center>'
+      line1: '<center><brand>ᴍʏᴛʜɪᴄ ɪꜱʟᴀɴᴅ</center>'
       line2: '<center><gold>Open for VIPs only right now</center>'
 
 server-icon:

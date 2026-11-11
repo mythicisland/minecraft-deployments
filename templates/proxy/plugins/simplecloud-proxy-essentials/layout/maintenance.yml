@@ -5,7 +5,7 @@ motd:
   update-type: RANDOM
   layouts:
     - name: maintenance
-      line1: '<center><brand>ꜱɪᴍᴘʟᴇᴄʟᴏᴜᴅ</center>'
+      line1: '<center><brand>ᴍʏᴛʜɪᴄ ɪꜱʟᴀɴᴅ</center>'
       line2: '<center><warning>In maintenance, back soon.</center>'
 
 server-icon:

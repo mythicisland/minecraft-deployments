@@ -5,7 +5,7 @@ motd:
   update-type: RANDOM
   layouts:
     - name: public
-      line1: '<center><brand>ꜱɪᴍᴘʟᴇᴄʟᴏᴜᴅ</center>'
+      line1: '<center><brand>ᴍʏᴛʜɪᴄ ɪꜱʟᴀɴᴅ</center>'
       line2: '<center><muted>A network powered by simplecloud.app</center>'
 
 server-icon:
