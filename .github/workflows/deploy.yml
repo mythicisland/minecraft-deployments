@@ -46,8 +46,14 @@ jobs:
           PROXY_TEMPLATE: ${{ steps.versions.outputs.proxy_template }}
         run: |
           gh release download "lobby/v$LOBBY" -R mythicisland/monorepo -D dist/lobby
-          gh release download "proxy/v$PROXY" -R mythicisland/monorepo -D dist/proxy
           (cd dist/lobby && sha256sum -c SHA256SUMS)
+
+          # no proxy version yet: the proxy runs without our plugin
+          if [ -z "$PROXY" ] || [ "$PROXY" = "null" ]; then
+            echo "No proxy version, skipping the proxy plugin"
+            exit 0
+          fi
+          gh release download "proxy/v$PROXY" -R mythicisland/monorepo -D dist/proxy
           (cd dist/proxy && sha256sum -c SHA256SUMS)
           mkdir -p "templates/$PROXY_TEMPLATE/plugins"
           cp dist/proxy/proxy.jar "templates/$PROXY_TEMPLATE/plugins/mythicisland-proxy.jar"
@@ -99,6 +105,8 @@ jobs:
           blueprint-name: ${{ steps.versions.outputs.lobby_blueprint }}
           server-url: ${{ steps.lobby.outputs.path }}
           configurator: minestom_velocity
+          server-software: minestom
+          # replaces the whole runtime config, so the java options and args of a java blueprint go away
           runtime-config-type: binary
 
       # Running servers keep the old version until they restart. To roll them over right away:

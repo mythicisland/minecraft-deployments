@@ -4,5 +4,5 @@ lobby:
   version: 1.0.0
   blueprint: lobby # SimpleCloud blueprint name
 proxy:
-  version: 1.0.0
+  version: "" # empty until the proxy plugin has code
   template: proxy # the jar goes to templates/<template>/plugins/

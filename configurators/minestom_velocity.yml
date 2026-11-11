@@ -1,5 +1,9 @@
 # Minestom has no config files of its own: the lobby reads this server.properties on start
 # (environment variables win over it). The file is created if it doesn't exist.
+#
+# The queue and NATS run in k3s on the same host (see flux-deployments); the host reaches their cluster IPs.
+# The two secrets come from the dashboard, Settings > Variables & Secrets. Both keys have to exist there,
+# otherwise the server doesn't start.
 paths:
   - path: "server.properties"
     type: "PROPERTIES"
@@ -8,3 +12,11 @@ paths:
       server-port: %port%
       max-players: %max-players%
       velocity-secret: "%forwarding-secret%"
+      # queue service, clusterIP in apps/mythicisland/queue/service.yaml
+      queue-grpc-host: "10.43.0.52"
+      queue-grpc-port: "4564"
+      # nats.mythicisland.internal is an /etc/hosts alias that the infra repo sets up
+      queue-nats-url: "nats://nats.mythicisland.internal:4222"
+      queue-nats-user: "mythicisland"
+      queue-nats-secret: "{{ secrets.QUEUE_NATS_SECRET }}"
+      queue-auth-secret: "{{ secrets.QUEUE_AUTH_SECRET }}"
