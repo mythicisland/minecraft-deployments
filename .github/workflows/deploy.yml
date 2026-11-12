@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Read versions
+      - name: get versions
         id: versions
         run: |
           echo "lobby=$(yq '.lobby.version' versions.yml)" >> "$GITHUB_OUTPUT"
@@ -29,7 +29,7 @@ jobs:
           echo "proxy=$(yq '.proxy.version' versions.yml)" >> "$GITHUB_OUTPUT"
           echo "proxy_template=$(yq '.proxy.template' versions.yml)" >> "$GITHUB_OUTPUT"
 
-      - name: Create app token
+      - name: create app token
         id: app
         uses: actions/create-github-app-token@v3
         with:
@@ -38,7 +38,7 @@ jobs:
           owner: mythicisland
           repositories: monorepo
 
-      - name: Download releases
+      - name: download releases
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           LOBBY: ${{ steps.versions.outputs.lobby }}
@@ -49,13 +49,11 @@ jobs:
           gh release download "lobby/v$LOBBY" -R mythicisland/monorepo -D dist/lobby
           (cd dist/lobby && sha256sum -c SHA256SUMS)
 
-          # no battle version yet: nothing to deploy for it
           if [ -n "$BATTLE" ] && [ "$BATTLE" != "null" ]; then
             gh release download "battle/v$BATTLE" -R mythicisland/monorepo -D dist/battle
             (cd dist/battle && sha256sum -c SHA256SUMS)
           fi
 
-          # no proxy version yet: the proxy runs without our plugin
           if [ -z "$PROXY" ] || [ "$PROXY" = "null" ]; then
             echo "No proxy version, skipping the proxy plugin"
             exit 0
@@ -65,7 +63,7 @@ jobs:
           mkdir -p "templates/$PROXY_TEMPLATE/plugins"
           cp dist/proxy/proxy.jar "templates/$PROXY_TEMPLATE/plugins/mythicisland-proxy.jar"
 
-      - name: Set up SSH
+      - name: setup ssh
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -80,7 +78,7 @@ jobs:
           echo "RSYNC_RSH=ssh -p ${SSH_PORT:-22}" >> "$GITHUB_ENV"
           echo "SSH_PORT=${SSH_PORT:-22}" >> "$GITHUB_ENV"
 
-      - name: Sync templates
+      - name: sync templates
         run: |
           for dir in templates/*/; do
             name="$(basename "$dir")"
@@ -88,10 +86,10 @@ jobs:
             rsync -az --delete --filter='P *.jar' "$dir" "$REMOTE:$SC_HOME/templates/$name/"
           done
 
-      - name: Sync configurators
+      - name: sync configurators
         run: rsync -az configurators/ "$REMOTE:$SC_HOME/options/configurators/"
 
-      - name: Upload server binaries
+      - name: upload server binaries
         env:
           LOBBY: ${{ steps.versions.outputs.lobby }}
           BATTLE: ${{ steps.versions.outputs.battle }}
@@ -103,7 +101,6 @@ jobs:
             chmod +x "dist/$server/$server"
             ssh -p "$SSH_PORT" "$REMOTE" "mkdir -p '$(dirname "$versioned")'"
             rsync -az --ignore-existing "dist/$server/$server" "$REMOTE:$versioned"
-            # a redeploy of the same version finds the link in place, mv refuses to move a file onto itself
             ssh -p "$SSH_PORT" "$REMOTE" "[ '$versioned' -ef '$current' ] || { ln -f '$versioned' '$current.new' && mv -f '$current.new' '$current'; }"
           }
           upload lobby "$LOBBY"
@@ -111,7 +108,7 @@ jobs:
             upload battle "$BATTLE"
           fi
 
-      - name: Point the lobby blueprint at the binary
+      - name: point the lobby blueprint at the binary
         uses: mythicisland/actions/simplecloud/update-blueprint@main
         with:
           network-id: ${{ secrets.SIMPLECLOUD_NETWORK_ID }}
@@ -122,7 +119,7 @@ jobs:
           server-software: minestom
           runtime-config-type: binary
 
-      - name: Point the battle blueprint at the binary
+      - name: point the battle blueprint at the binary
         if: steps.versions.outputs.battle != '' && steps.versions.outputs.battle != 'null'
         uses: mythicisland/actions/simplecloud/update-blueprint@main
         with:

@@ -1,4 +1,3 @@
-# Config version. Do not change this
 config-version = "2.8"
 
 player-info-forwarding-mode = "modern"

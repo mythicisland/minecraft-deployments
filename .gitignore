@@ -1,5 +1,4 @@
 .idea/
 
-# downloaded by the deploy workflow, never committed
 dist/
 templates/*/plugins/*.jar

@@ -2,7 +2,6 @@ server: proxy
 
 storage-method: postgresql
 
-# Postgres in Kubernetes (service postgres-host); the serverhost fills in the secrets when the proxy starts
 data:
   address: 10.43.0.50:5432
   database: luckperms
@@ -16,7 +15,6 @@ data:
     connection-timeout: 5000 # 5 seconds
   table-prefix: 'luckperms_'
 
-# the NATS in Kubernetes that the queue uses too
 messaging-service: nats
 auto-push-updates: true
 push-log-entries: true
