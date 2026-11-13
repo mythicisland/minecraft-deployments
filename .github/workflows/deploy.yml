@@ -26,6 +26,8 @@ jobs:
           echo "lobby_blueprint=$(yq '.lobby.blueprint' versions.yml)" >> "$GITHUB_OUTPUT"
           echo "battle=$(yq '.battle.version' versions.yml)" >> "$GITHUB_OUTPUT"
           echo "battle_blueprint=$(yq '.battle.blueprint' versions.yml)" >> "$GITHUB_OUTPUT"
+          echo "build=$(yq '.build.version' versions.yml)" >> "$GITHUB_OUTPUT"
+          echo "build_blueprint=$(yq '.build.blueprint' versions.yml)" >> "$GITHUB_OUTPUT"
           echo "proxy=$(yq '.proxy.version' versions.yml)" >> "$GITHUB_OUTPUT"
           echo "proxy_template=$(yq '.proxy.template' versions.yml)" >> "$GITHUB_OUTPUT"
 
@@ -43,6 +45,7 @@ jobs:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           LOBBY: ${{ steps.versions.outputs.lobby }}
           BATTLE: ${{ steps.versions.outputs.battle }}
+          BUILD: ${{ steps.versions.outputs.build }}
           PROXY: ${{ steps.versions.outputs.proxy }}
           PROXY_TEMPLATE: ${{ steps.versions.outputs.proxy_template }}
         run: |
@@ -52,6 +55,11 @@ jobs:
           if [ -n "$BATTLE" ] && [ "$BATTLE" != "null" ]; then
             gh release download "battle/v$BATTLE" -R mythicisland/monorepo -D dist/battle
             (cd dist/battle && sha256sum -c SHA256SUMS)
+          fi
+
+          if [ -n "$BUILD" ] && [ "$BUILD" != "null" ]; then
+            gh release download "build/v$BUILD" -R mythicisland/monorepo -D dist/build
+            (cd dist/build && sha256sum -c SHA256SUMS)
           fi
 
           if [ -z "$PROXY" ] || [ "$PROXY" = "null" ]; then
@@ -93,6 +101,7 @@ jobs:
         env:
           LOBBY: ${{ steps.versions.outputs.lobby }}
           BATTLE: ${{ steps.versions.outputs.battle }}
+          BUILD: ${{ steps.versions.outputs.build }}
         run: |
           upload() {
             local server="$1" version="$2"
@@ -106,6 +115,9 @@ jobs:
           upload lobby "$LOBBY"
           if [ -d dist/battle ]; then
             upload battle "$BATTLE"
+          fi
+          if [ -d dist/build ]; then
+            upload build "$BUILD"
           fi
 
       - name: point the lobby blueprint at the binary
@@ -127,6 +139,18 @@ jobs:
           network-credential: ${{ secrets.SIMPLECLOUD_NETWORK_CREDENTIAL }}
           blueprint-name: ${{ steps.versions.outputs.battle_blueprint }}
           server-url: ${{ env.SC_HOME }}/binaries/battle/battle
+          configurator: minestom_velocity
+          server-software: minestom
+          runtime-config-type: binary
+
+      - name: point the build blueprint at the binary
+        if: steps.versions.outputs.build != '' && steps.versions.outputs.build != 'null'
+        uses: mythicisland/actions/simplecloud/update-blueprint@main
+        with:
+          network-id: ${{ secrets.SIMPLECLOUD_NETWORK_ID }}
+          network-credential: ${{ secrets.SIMPLECLOUD_NETWORK_CREDENTIAL }}
+          blueprint-name: ${{ steps.versions.outputs.build_blueprint }}
+          server-url: ${{ env.SC_HOME }}/binaries/build/build
           configurator: minestom_velocity
           server-software: minestom
           runtime-config-type: binary

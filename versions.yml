@@ -7,3 +7,5 @@ proxy:
 battle:
   version: "0.0.2"
   blueprint: battle
+build:
+  blueprint: build
