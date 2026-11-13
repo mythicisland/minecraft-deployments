@@ -1,11 +1,12 @@
 lobby:
-  version: 0.0.8
+  version: 0.0.9
   blueprint: lobby
 proxy:
   version: "0.0.2"
   template: proxy
 battle:
-  version: "0.0.2"
+  version: "0.0.3"
   blueprint: battle
 build:
   blueprint: build
+  version: 0.0.1
